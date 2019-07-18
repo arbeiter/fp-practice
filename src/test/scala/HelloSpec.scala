@@ -56,4 +56,44 @@ class HelloSpec extends FunSuite with DiagrammedAssertions {
     val actual = me.takeWhile(p).toList
     assert(actual == expected)
 	}
+
+  test("testFlatMapViaFoldRight with normal values") {
+    val me = Stream({println("hi"); 1}, {println("hi"); 2}, 3, 4)
+    val f = (x: Int) => Cons(() => x, () => Empty)
+    val expected = Stream(1, 2, 3, 4).toList
+    val actual = me.flatMap(f).toList
+    assert(actual == expected)
+  }
+
+  test("testForAll with all false") {
+    val me = Stream("x11", "x12", "x3", "x4")
+    val p = (x: String) => x.contains("x1")
+    val expected = false
+    val actual = me.forAll(p)
+    assert(actual == expected)
+  }
+
+  test("testForAll with all true") {
+    val me = Stream(1, 2, 3, 4)
+    val p = (x: Int) => x > 0
+    val expected = true
+    val actual = me.forAll(p)
+    assert(actual == expected)
+  }
+
+  test("testMapViaFoldRight") {
+    val me = Stream({println("hi"); 1}, {println("hi"); 2}, 3, 4);
+    val f = (x: Int) => x + 1
+    val expected = Stream(2, 3, 4, 5).toList
+    val actual = me.map(f).toList
+    assert(actual == expected)
+  }
+
+  test("Infinite generator") {
+    var ones: Stream[Int] = Stream.empty
+    ones = Stream.cons(1, ones)
+    val actual = ones.take(5).toList
+    val expected =  List(1, 1, 1, 1, 1)
+    assert(actual == expected)
+  }
 }
