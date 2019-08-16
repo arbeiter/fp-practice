@@ -89,6 +89,34 @@ class HelloSpec extends FunSuite with DiagrammedAssertions {
     assert(actual == expected)
   }
 
+  test("testConstant with take") {
+    val me = Stream.constant(1)
+    val expected = List(1, 1, 1, 1)
+    val actual = me.take(4).toList
+    assert(actual == expected)
+  }
+
+	test("testFrom with take") {
+    val me = Stream.from(4)
+    val expected = List(4, 5, 6, 7)
+    val actual = me.take(4).toList
+    assert(actual == expected)
+  }
+
+  test("testFibs with take") {
+    val me = Stream.fibs(0, 1)
+    val expected = List(0, 1, 1, 2, 3, 5, 8)
+    val actual = me.take(7).toList
+    assert(actual == expected)
+  }
+
+  test("testConstantUnfold with take") {
+    val me = Stream.constantUnfold(0)
+    val expected = List(0, 0, 0, 0, 0)
+    val actual = me.take(5).toList
+    assert(actual == expected)
+  }
+
   test("Infinite generator") {
     var ones: Stream[Int] = Stream.empty
     ones = Stream.cons(1, ones)

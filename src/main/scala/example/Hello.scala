@@ -1,10 +1,6 @@
 package example
 import Stream._
 
-object Hello extends App {
-  println("Hello")
-}
-
 trait Stream[+A] {
   /*
     Write a function to convert a Stream to a List, which will force its evaluation and let you look at it in the REPL. You can convert to the regular List type in the standard library. You can place this and other functions that operate on a Stream inside the Stream trait.
@@ -68,8 +64,6 @@ trait Stream[+A] {
   def exists(p: A => Boolean): Boolean = 
     foldRight(false)((a, b) => p(a) || b) // Here `b` is the unevaluated recursive step that folds the tail of the stream. If `p(a)` returns `true`, `b` will never be evaluated and the computation terminates early.
 
-  // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
-  // writing your own function signatures.
   def startsWith[B](s: Stream[B]): Boolean = ???
 
   def forAll[B](p: A => Boolean): Boolean =
@@ -113,6 +107,43 @@ object Stream {
     lazy val tail = tl
     Cons(() => head, () => tail)
   }
+  val ones: Stream[Int] = Stream.cons(1, ones)
+
+  def constant[A](a: A): Stream[A] = cons(a, constant(a))
+  def constant1[A](a: A): Stream[A] = {
+    lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    return tail
+  }
+
+	def from(n: Int): Stream[Int] = cons(n, from(n+1))
+  
+  def fibs(first: Int, second: Int): Stream[Int] = cons(first, fibs(second, first+second))
+
+	def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case Some((h, t)) => cons(h, unfold(t)(f))
+    case None => empty
+  }
+
+  def fromUnfold(n: Int): Stream[Int] = unfold(n)(x => Some(x, x+1)) 
+
+  def constantUnfold(n: Int): Stream[Int] = unfold(n)(x => Some(x, x))
+
+  def fibsUnfold(): Stream[Int] =  {
+   unfold((0, 1))((s: (Int, Int)) => Some(s._1, (s._2, s._1 + s._2)))
+  }
+
+  def mapUnfold[B](f: B => Stream[B]) = {
+
+  }
+  /**
+   * Exercise 5.13
+   *
+   * Use unfold to implement map, take, takeWhile, zipWith (as in chapter 3),
+   * and zipAll.
+   * The zipAll function should continue the traversal
+   * as long as either stream has more elements
+   * --- it uses Option to indicate whether each stream has been exhausted.
+   */
 
   def empty[A]: Stream[A] = Empty
 
