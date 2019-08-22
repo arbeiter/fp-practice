@@ -89,6 +89,14 @@ class HelloSpec extends FunSuite with DiagrammedAssertions {
     assert(actual == expected)
   }
 
+  test("testMapUnfold") {
+    val me = Stream({println("hi"); 1}, {println("hi"); 2}, 3, 4);
+    val f = (x: Int) => x + 1
+    val expected = Stream(2, 3, 4, 5).toList
+    val actual = me.mapViaUnfold(f).toList
+    assert(actual == expected)
+  }
+
   test("testConstant with take") {
     val me = Stream.constant(1)
     val expected = List(1, 1, 1, 1)

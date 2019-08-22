@@ -73,11 +73,18 @@ trait Stream[+A] {
     if(f(a)) cons(a, b) else empty
   })
 
+  def mapViaUnfold[B](f: A => B): Stream[B] = 
+    unfold(this) {
+      case Cons(h, t) => Some(f(h()), t())
+      case _ => None
+    }
+
   def foldRight[B](z: =>B)(f: (A,=>B) =>B):B =
     this match {
       case Cons(h, t) => f(h(), t().foldRight(z)(f))
       case _ => z
     }
+
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -115,11 +122,11 @@ object Stream {
     return tail
   }
 
-	def from(n: Int): Stream[Int] = cons(n, from(n+1))
+  def from(n: Int): Stream[Int] = cons(n, from(n+1))
   
   def fibs(first: Int, second: Int): Stream[Int] = cons(first, fibs(second, first+second))
 
-	def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
     case Some((h, t)) => cons(h, unfold(t)(f))
     case None => empty
   }
@@ -132,9 +139,7 @@ object Stream {
    unfold((0, 1))((s: (Int, Int)) => Some(s._1, (s._2, s._1 + s._2)))
   }
 
-  def mapUnfold[B](f: B => Stream[B]) = {
 
-  }
   /**
    * Exercise 5.13
    *
