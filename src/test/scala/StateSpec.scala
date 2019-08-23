@@ -24,7 +24,7 @@ class StateSpec extends FunSuite with DiagrammedAssertions {
     val rng = SimpleRNG(42)
     val (expected_num, expected_seed) = (16159453, SimpleRNG(1059025964525L))
     val (num , seed) = RNG.double(rng)
-    val max = Int.MaxValue.toDouble
+    val max = (Int.MaxValue.toDouble+1)
     val prod = max * num 
 
     assert(expected_num==prod)

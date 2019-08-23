@@ -6,10 +6,10 @@ trait RNG {
 
 case class SimpleRNG(seed: Long) extends RNG {
   def nextInt: (Int, RNG) = {
-    val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL // `&` is bitwise AND. We use the current seed to generate a new seed.
-    val nextRNG = SimpleRNG(newSeed) // The next state, which is an `RNG` instance created from the new seed.
-    val n = (newSeed >>> 16).toInt // `>>>` is right binary shift with zero fill. The value `n` is our new pseudo-random integer.
-    (n, nextRNG) // The return value is a tuple containing both a pseudo-random integer and the next `RNG` state.
+    val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL 
+    val nextRNG = SimpleRNG(newSeed) 
+    val n = (newSeed >>> 16).toInt
+    (n, nextRNG) 
   }
 }
 
@@ -21,13 +21,6 @@ object RNG {
 		(i1,i2)
 	}
 
-  /*
-      Write a function that uses RNG.nextInt to 
-        generate a random integer between 0 and Int.maxValue (inclusive). 
-
-      Make sure to handle the corner case when nextInt returns Int.MinValue, 
-        which doesn’t have a non-negative counterpart.
-  */
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     var (i1, nextRNG) = rng.nextInt
 
@@ -40,97 +33,39 @@ object RNG {
     return (i1, nextRNG)
   }
 
- /* Exercise 6.2
-   *
-   * Write a function to generate a Double between 0 and 1, not including 1.
-   * Note: You can use Int.MaxValue to obtain the maximum positive integer value,
-   * and you can use x.toDouble to convert an x: Int to a Double.
-   *
-   * FIXME: useful test cases not been provided.
-   */
-   def double(rng: RNG): (Double, RNG) = {
-     var (n, nextRNG) = rng.nextInt
-     if(n == Int.MinValue) {
-       return ((Math.abs(n+1).toDouble/ Int.MaxValue),
-             nextRNG)
-     }
-
-     return ((Math.abs(n).toDouble)/ Int.MaxValue,
-             nextRNG)
-     
-   }
-
-}
-
-/*
-package fpinscala.state
-
-trait RNG {
-  def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
-}
-
-object RNG {
-  // NB - this was called SimpleRNG in the book text
-
-  case class Simple(seed: Long) extends RNG {
-    def nextInt: (Int, RNG) = {
-      val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL // `&` is bitwise AND. We use the current seed to generate a new seed.
-      val nextRNG = Simple(newSeed) // The next state, which is an `RNG` instance created from the new seed.
-      val n = (newSeed >>> 16).toInt // `>>>` is right binary shift with zero fill. The value `n` is our new pseudo-random integer.
-      (n, nextRNG) // The return value is a tuple containing both a pseudo-random integer and the next `RNG` state.
-    }
+  def double(rng: RNG): (Double, RNG) = {
+    val (n, nextRNG) = nonNegativeInt(rng)
+    (n.toDouble / (Int.MaxValue.toDouble+1), nextRNG)
   }
 
-  type Rand[+A] = RNG => (A, RNG)
+  def intDouble(rng: RNG): ((Int,Double), RNG) = {
+    val (intNum, tempRNG) = rng.nextInt
+    val (doubleNum, nextRNG) = double(tempRNG)
+    ((intNum, doubleNum), nextRNG)
+  }
 
-  val int: Rand[Int] = _.nextInt
+  def doubleInt(rng: RNG): ((Double,Int), RNG) = {
+    val (doubleNum, nextRNG) = double(rng)
+    val (intNum, tempRNG) = nextRNG.nextInt
+    return ((doubleNum, intNum), tempRNG)
+  }
 
-  def unit[A](a: A): Rand[A] =
-    rng => (a, rng)
+  def double3(rng: RNG): ((Double, Double, Double), RNG) = {
+    val (d1, rng1) = double(rng)
+    val (d2, rng2) = double(rng1)
+    val (d3, rng3) = double(rng2) 
+    ((d1, d2, d3), rng3)
+  }
 
-  def map[A,B](s: Rand[A])(f: A => B): Rand[B] =
-    rng => {
-      val (a, rng2) = s(rng)
-      (f(a), rng2)
+  def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
+    def loop(n: Int, accumulator: List[Int], rng: RNG): (List[Int], RNG) = {
+      if(n==0) {
+        (accumulator, rng)
+      } else {
+        val (intNum, tempRNG) = rng.nextInt 
+        loop(n-1, (intNum::accumulator.reverse).reverse, tempRNG)
+      }
     }
-
-  def nonNegativeInt(rng: RNG): (Int, RNG) = ???
-
-  def double(rng: RNG): (Double, RNG) = ???
-
-  def intDouble(rng: RNG): ((Int,Double), RNG) = ???
-
-  def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
-
-  def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
-
-  def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
-
-  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
-
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
-
-  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
+    loop(count, List(), rng)
+  }
 }
-
-case class State[S,+A](run: S => (A, S)) {
-  def map[B](f: A => B): State[S, B] =
-    ???
-  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-    ???
-  def flatMap[B](f: A => State[S, B]): State[S, B] =
-    ???
-}
-
-sealed trait Input
-case object Coin extends Input
-case object Turn extends Input
-
-case class Machine(locked: Boolean, candies: Int, coins: Int)
-
-object State {
-  type Rand[A] = State[RNG, A]
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
-}
-
-*/
