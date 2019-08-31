@@ -26,6 +26,14 @@ object RNG {
     }
   }
 
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f:(A,B) => C): Rand[C] = {
+    rng => {
+      val (raa, rng1) = ra(rng)
+      val (rbb, rng2) = rb(rng1)
+      (f(raa, rbb), rng2)
+    }
+  }
+
 	def randomPair(rng: RNG): (Int,Int) = { 
 		val (i1,_) = rng.nextInt
 		val (i2,_) = rng.nextInt
