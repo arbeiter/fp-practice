@@ -139,11 +139,10 @@ object Stream {
    unfold((0, 1))((s: (Int, Int)) => Some(s._1, (s._2, s._1 + s._2)))
   }
 
-
   /**
    * Exercise 5.13
    *
-   * Use unfold to implement map, take, takeWhile, zipWith (as in chapter 3),
+   * Use unfold to implement take, takeWhile, zipWith (as in chapter 3),
    * and zipAll.
    * The zipAll function should continue the traversal
    * as long as either stream has more elements

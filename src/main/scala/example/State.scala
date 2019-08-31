@@ -13,13 +13,32 @@ case class SimpleRNG(seed: Long) extends RNG {
   }
 }
 
+
 object RNG {
+
+  type Rand[+A] = RNG => (A, RNG)
+  def int: Rand[Int] = _.nextInt
+  def unit[A](a: A): Rand[A] = rng => (a, rng)
+  def map[A, B](s: Rand[A])(f: A => B): Rand[B] = {
+    rng => {
+      val (a, rng2) = s(rng)
+      (f(a), rng2)
+    }
+  }
 
 	def randomPair(rng: RNG): (Int,Int) = { 
 		val (i1,_) = rng.nextInt
 		val (i2,_) = rng.nextInt
 		(i1,i2)
 	}
+
+  def notNegativeEven(rng: RNG): Rand[Int] = { 
+    map(nonNegativeInt)(x => (x-1)%2)
+}
+
+  def doubleWithMap(rng: RNG): Rand[Double] = {
+    map(nonNegativeInt)(x => (x.toDouble) / (Int.MaxValue.toDouble + 1))
+}
 
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     var (i1, nextRNG) = rng.nextInt
