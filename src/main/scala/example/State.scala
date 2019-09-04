@@ -19,6 +19,7 @@ object RNG {
   type Rand[+A] = RNG => (A, RNG)
   def int: Rand[Int] = _.nextInt
   def unit[A](a: A): Rand[A] = rng => (a, rng)
+
   def map[A, B](s: Rand[A])(f: A => B): Rand[B] = {
     rng => {
       val (a, rng2) = s(rng)
@@ -33,6 +34,15 @@ object RNG {
       (f(raa, rbb), rng2)
     }
   }
+
+  // : If you can combine two RNG transitions, you should be able to combine a whole list of them. 
+  // List.fill(n)(x)
+  //def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+    fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
+
+  def _ints(count: Int): Rand[List[Int]] =
+    sequence(List.fill(count)(int))
 
 	def randomPair(rng: RNG): (Int,Int) = { 
 		val (i1,_) = rng.nextInt
