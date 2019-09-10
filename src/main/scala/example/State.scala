@@ -70,6 +70,13 @@ object RNG {
     return (i1, nextRNG)
   }
 
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
+    rng => {
+      val (i1, nextRNG) = f(rng)
+      g(i1)(nextRNG)
+    }
+  }
+
   def double(rng: RNG): (Double, RNG) = {
     val (n, nextRNG) = nonNegativeInt(rng)
     (n.toDouble / (Int.MaxValue.toDouble+1), nextRNG)
