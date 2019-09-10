@@ -13,6 +13,13 @@ case class SimpleRNG(seed: Long) extends RNG {
   }
 }
 
+// case class State[S, +A](run: S => (A, S)) {
+//   def map[B](f: A => B): State[S, B] = {
+//     state => {
+//       val (
+//     }
+//   }
+// }
 
 object RNG {
 
@@ -25,6 +32,23 @@ object RNG {
       val (a, rng2) = s(rng)
       (f(a), rng2)
     }
+  }
+  
+  // def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
+  def mapWithFlatMap[A, B](s: Rand[A])(f: A => B): Rand[B] = {
+    flatMap(s) ( a =>
+      unit(f(a))
+    )
+  }
+
+  def map2WithFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
+    flatMap(ra) ( a => {
+        rng => {
+          val (b, rngc) = rb(rng)
+          return (f(a, b), rngc)
+        }
+      }
+    )
   }
 
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f:(A,B) => C): Rand[C] = {
@@ -52,11 +76,11 @@ object RNG {
 
   def notNegativeEven(rng: RNG): Rand[Int] = { 
     map(nonNegativeInt)(x => (x-1)%2)
-}
+  }
 
   def doubleWithMap(rng: RNG): Rand[Double] = {
     map(nonNegativeInt)(x => (x.toDouble) / (Int.MaxValue.toDouble + 1))
-}
+  }
 
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     var (i1, nextRNG) = rng.nextInt
@@ -70,6 +94,7 @@ object RNG {
     return (i1, nextRNG)
   }
 
+  // RNG => (B, RNG)
   def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
     rng => {
       val (i1, nextRNG) = f(rng)
